@@ -5,5 +5,4 @@ enum class Codegen(
 ) {
     OPERATION("operationBased"),
     RESPONSE("responseBased"),
-    COMPATIBILITY("compat"),
 }

@@ -69,7 +69,7 @@ class CompilerParams {
      *
      * Default value: false
      */
-    internal val generateAsInternal: Boolean = false
+    internal val generateAsInternal: Boolean? = null
 
     /**
      * A list of [Regex] patterns for GraphQL enums that should be generated as Kotlin sealed classes instead of the default Kotlin enums.
@@ -79,7 +79,7 @@ class CompilerParams {
      *
      * Default: emptyList()
      */
-    internal val sealedClassesForEnumsMatching: List<String> = emptyList()
+    internal val sealedClassesForEnumsMatching: List<String>? = null
 
     /**
      * The format in which the operation manifest will be generated.
@@ -173,13 +173,7 @@ class CompilerParams {
      * Kotlin native will generate [Any?] for optional types
      * Setting generateFilterNotNull will generate extra `filterNotNull` functions that will help keep the type information
      */
-    internal val generateFilterNotNull: Boolean = false
-
-    /**
-     * Whether to generate the compiled selections used to read/write from the normalized cache.
-     * Disable this option if you don't use the normalized cache to save some bytecode
-     */
-    internal val generateResponseFields: Boolean = false
+    internal val generateFilterNotNull: Boolean? = null
 
     /**
      * Target language version for the generated code.
@@ -208,14 +202,6 @@ class CompilerParams {
      *
      * Only valid when [generateKotlinModels] is true
      */
-    internal val generateTestBuilders: Boolean = false
-
-    /**
-     * Whether to generate the type safe Data builders. These are mainly used for tests but can also be used for other use
-     * cases too.
-     *
-     * Only valid when [generateKotlinModels] is true
-     */
     internal val generateDataBuilders: Boolean = false
 
     /**
@@ -224,7 +210,7 @@ class CompilerParams {
      * Default value: false
      * Only valid when [generateKotlinModels] is false
      */
-    internal val generateModelBuilders: Boolean = false
+    internal val generateModelBuilders: Boolean? = null
 
     /**
      * The style to use for fields that are nullable in the Java generated code.
@@ -245,7 +231,7 @@ class CompilerParams {
      *
      * Default: `none`
      */
-    internal val nullableFieldStyle: JavaNullable = JavaNullable.NONE
+    internal val nullableFieldStyle: JavaNullable? = null
 
     // TODO to be handled
     /**

@@ -132,9 +132,6 @@
                                         <outputDirectory>
                                             ${project.build.directory}/generated-sources/graphql-client/books/
                                         </outputDirectory>
-                                        <testDirectory>
-                                            ${project.build.directory}/generated-sources/graphql-client/books/test/
-                                        </testDirectory>
                                         <debugDirectory>
                                             ${project.build.directory}/generated-sources/graphql-client/books/debug/
                                         </debugDirectory>
@@ -159,13 +156,10 @@
                                             <generateAsInternal>false</generateAsInternal>
                                             <generateFilterNotNull>false</generateFilterNotNull>
                                             <generateFragmentImplementations>false</generateFragmentImplementations>
-                                            <generateResponseFields>false</generateResponseFields>
                                             <generateQueryDocument>true</generateQueryDocument>
                                             <generateSchema>false</generateSchema>
-                                            <generateTestBuilders>false</generateTestBuilders>
                                             <generateOptionalOperationVariables>false
                                             </generateOptionalOperationVariables>
-                                            <nullableFieldStyle>NONE</nullableFieldStyle>
                                             <useSemanticNaming>true</useSemanticNaming>
                                             <targetLanguage>KOTLIN_1_5</targetLanguage>
                                             <sealedClassesForEnumsMatching></sealedClassesForEnumsMatching>

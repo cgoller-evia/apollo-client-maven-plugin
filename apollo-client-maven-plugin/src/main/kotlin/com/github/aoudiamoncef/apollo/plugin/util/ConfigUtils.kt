@@ -1,5 +1,6 @@
 package com.github.aoudiamoncef.apollo.plugin.util
 
+import com.apollographql.apollo.compiler.TargetLanguage
 import com.github.aoudiamoncef.apollo.plugin.config.CompilationUnit
 import com.github.aoudiamoncef.apollo.plugin.config.CompilerParams
 import com.github.aoudiamoncef.apollo.plugin.config.Introspection
@@ -62,9 +63,6 @@ object ConfigUtils {
         if (compilationUnit.debugDirectory == null) {
             compilationUnit.debugDirectory = BuildDirLayout.debug(project, compilationUnit)
         }
-        if (compilationUnit.testDirectory == null) {
-            compilationUnit.testDirectory = BuildDirLayout.test(project, compilationUnit)
-        }
 
         return compilationUnit
     }
@@ -125,6 +123,25 @@ object ConfigUtils {
 
         if (compilerParams.schemaPackageName.isBlank()) {
             compilerParams.schemaPackageName = "${project.groupId}.apollo.client.${service.compilationUnit.name}.schema"
+        }
+
+        if (compilerParams.targetLanguage == TargetLanguage.JAVA) {
+            if (compilerParams.generateAsInternal != null) {
+                throw MojoExecutionException("generateAsInternal is not used in Java")
+            }
+            if (compilerParams.generateFilterNotNull != null) {
+                throw MojoExecutionException("generateFilterNotNull is not used in Java")
+            }
+            if (compilerParams.sealedClassesForEnumsMatching != null) {
+                throw MojoExecutionException("sealedClassesForEnumsMatching is not used in Java")
+            }
+        } else {
+            if (compilerParams.nullableFieldStyle != null) {
+                throw MojoExecutionException("nullableFieldStyle is not used in Kotlin")
+            }
+            if (compilerParams.generateModelBuilders != null) {
+                throw MojoExecutionException("generateModelBuilders is not used in Kotlin")
+            }
         }
 
         return compilerParams

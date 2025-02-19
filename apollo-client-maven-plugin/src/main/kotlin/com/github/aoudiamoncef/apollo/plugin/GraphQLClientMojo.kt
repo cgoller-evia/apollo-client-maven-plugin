@@ -1,5 +1,6 @@
 package com.github.aoudiamoncef.apollo.plugin
 
+import com.apollographql.apollo.annotations.ApolloExperimental
 import com.apollographql.apollo.ast.introspection.toGQLDocument
 import com.apollographql.apollo.ast.introspection.toIntrospectionSchema
 import com.apollographql.apollo.ast.toGQLDocument
@@ -54,6 +55,7 @@ class GraphQLClientMojo : AbstractMojo() {
     @Parameter
     private lateinit var services: Map<String, Service>
 
+    @OptIn(ApolloExperimental::class)
     @Throws(MojoExecutionException::class)
     override fun execute() {
         val start = System.nanoTime()
@@ -147,8 +149,6 @@ class GraphQLClientMojo : AbstractMojo() {
                     OperationOutputGenerator.Default(operationIdGenerator)
                 }
 
-            val metadata = compilerParams.metadataFiles.toList().map { it.toCodegenMetadata() }
-
             val scalarMapping =
                 compilerParams.scalarsMapping
                     .mapValues { scalarMapping ->
@@ -164,11 +164,11 @@ class GraphQLClientMojo : AbstractMojo() {
                     useSemanticNaming = compilerParams.useSemanticNaming,
                     operationManifestFormat = compilerParams.operationManifestFormat,
                     generateSchema = compilerParams.generateSchema,
-                    // sealedClassesForEnumsMatching = compilerParams.sealedClassesForEnumsMatching,
-                    // generateAsInternal = compilerParams.generateAsInternal,
-                    // generateFilterNotNull = compilerParams.generateFilterNotNull,
-                    // generateModelBuilders = compilerParams.generateModelBuilders,
-                    // nullableFieldStyle = compilerParams.nullableFieldStyle,
+                    sealedClassesForEnumsMatching = compilerParams.sealedClassesForEnumsMatching,
+                    generateAsInternal = compilerParams.generateAsInternal,
+                    generateFilterNotNull = compilerParams.generateFilterNotNull,
+                    generateModelBuilders = compilerParams.generateModelBuilders,
+                    nullableFieldStyle = compilerParams.nullableFieldStyle,
                     generateFragmentImplementations = compilerParams.generateFragmentImplementations,
                     generateQueryDocument = compilerParams.generateQueryDocument,
                     packageName = compilerParams.packageName,
@@ -184,7 +184,7 @@ class GraphQLClientMojo : AbstractMojo() {
             val codegenSchema =
                 CodegenSchema(
                     schema = schema,
-                    normalizedPath = "",
+                    normalizedPath = service.schemaPath,
                     scalarMapping = scalarMapping,
                     generateDataBuilders = compilerParams.generateDataBuilders,
                 )
@@ -205,12 +205,12 @@ class GraphQLClientMojo : AbstractMojo() {
                     executableFiles = graphqlFiles.toInputFiles(),
                     irOptions = irOptions,
                     codegenOptions = codegenOptions,
-                    layoutFactory = null,
+                    layoutFactory = null, // ToDo: plugin?.layout(codegenSchema)
                     operationOutputGenerator = operationOutputGenerator,
-                    irOperationsTransform = null,
-                    javaOutputTransform = null,
-                    kotlinOutputTransform = null,
-                    documentTransform = null,
+                    irOperationsTransform = null, // ToDo: plugin?.irOperationsTransform(),
+                    javaOutputTransform = null, // ToDo: plugin?.javaOutputTransform(),
+                    kotlinOutputTransform = null, // ToDo: plugin?.kotlinOutputTransform(),
+                    documentTransform = null, // ToDo: plugin?.documentTransform(),
                     logger = compilerParams.logger,
                     operationManifestFile = compilationUnit.operationOutputFile,
                 ).writeTo(compilationUnit.outputDirectory as File, true, null)

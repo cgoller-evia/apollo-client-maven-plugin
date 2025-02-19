@@ -125,9 +125,6 @@ All plugin configuration properties and their defaults:
                 <outputDirectory>
                     ${project.build.directory}/generated-sources/graphql-client/lahzouz/
                 </outputDirectory>
-                <testDirectory>
-                    ${project.build.directory}/generated-sources/graphql-client/lahzouz/test/
-                </testDirectory>
                 <debugDirectory>
                     ${project.build.directory}/generated-sources/graphql-client/lahzouz/debug/
                 </debugDirectory>
@@ -150,9 +147,7 @@ All plugin configuration properties and their defaults:
                     <generateKotlinModels>false</generateKotlinModels>
                     <generateOptionalOperationVariables>false</generateOptionalOperationVariables>
                     <generateQueryDocument>true</generateQueryDocument>
-                    <generateResponseFields>false</generateResponseFields>
                     <generateSchema>false</generateSchema>
-                    <generateTestBuilders>false</generateTestBuilders>
                     <generateDataBuilders>false</generateDataBuilders>
                     <generateModelBuilders>false</generateModelBuilders>
                     <nullableFieldStyle>NONE</nullableFieldStyle>
@@ -251,26 +246,6 @@ public class LocalDateGraphQLAdapter implements Adapter<LocalDate> {
     ...
 </configuration>
 ----
-
-==== Test Sources
-
-To generate sources for tests:
-[source,xml]
-----
-<configuration>
-    ...
-    <addSourceRoot>false</addSourceRoot>
-    <addTestSourceRoot>true</addTestSourceRoot>
-    <compilationUnit>
-        <name>example</name>
-        <outputDirectory>${project.basedir}/target/generated-test-sources/apollo/example</outputDirectory>
-        <debugDirectory>${project.basedir}/target/generated-test-sources/apollo/example/debug</debugDirectory>
-        <testDirectory>${project.basedir}/target/generated-test-sources/apollo/example/debug</testDirectory>
-    <compilationUnit/>
-    ...
-</configuration>
-----
-
 
 === Using Apollo Client
 
