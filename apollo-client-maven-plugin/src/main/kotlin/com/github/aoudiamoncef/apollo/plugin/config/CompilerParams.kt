@@ -11,7 +11,6 @@ import java.io.File
  * in a future release.
  */
 class CompilerParams {
-
     /**
      * Whether to generate Java or Kotlin models
      *

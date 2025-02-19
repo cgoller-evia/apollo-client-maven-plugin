@@ -34,7 +34,6 @@ import java.nio.file.PathMatcher
     threadSafe = true,
 )
 class GraphQLClientMojo : AbstractMojo() {
-
     /**
      * Maven project instance
      */
@@ -85,13 +84,14 @@ class GraphQLClientMojo : AbstractMojo() {
             if (introspection.enabled) {
                 log.info("Automatically generating introspection file from: ${introspection.endpointUrl}")
                 introspection.schemaFile.let { schema ->
-                    val okHttpClient = SchemaDownloader.newOkHttpClient(
-                        connectTimeoutSeconds = introspection.connectTimeoutSeconds,
-                        readTimeoutSeconds = introspection.readTimeoutSeconds,
-                        writeTimeoutSeconds = introspection.writeTimeoutSeconds,
-                        useSelfSignedCertificat = introspection.useSelfSignedCertificat,
-                        useGzip = introspection.useGzip,
-                    )
+                    val okHttpClient =
+                        SchemaDownloader.newOkHttpClient(
+                            connectTimeoutSeconds = introspection.connectTimeoutSeconds,
+                            readTimeoutSeconds = introspection.readTimeoutSeconds,
+                            writeTimeoutSeconds = introspection.writeTimeoutSeconds,
+                            useSelfSignedCertificat = introspection.useSelfSignedCertificat,
+                            useGzip = introspection.useGzip,
+                        )
                     if (introspection.endpointUrl.isNotEmpty()) {
                         SchemaDownloader.downloadIntrospection(
                             schema = schema as File,
@@ -114,44 +114,49 @@ class GraphQLClientMojo : AbstractMojo() {
             }
 
             log.info("Read schema file")
-            val sourceSetFiles = ConfigUtils.getSourceSetFiles(
-                sourceFolder = service.sourceFolder as File,
-                includes = service.includes,
-                excludes = service.excludes,
-            )
+            val sourceSetFiles =
+                ConfigUtils.getSourceSetFiles(
+                    sourceFolder = service.sourceFolder as File,
+                    includes = service.includes,
+                    excludes = service.excludes,
+                )
             val schemaMatcher: PathMatcher = FileSystems.getDefault().getPathMatcher("glob:**.{json,sdl,graphqls}")
             val directories = ConfigUtils.findFilesByMatcher(sourceSetFiles, schemaMatcher)
-            val resolveSchema = ConfigUtils.resolveSchema(
-                project = project,
-                schemaPath = service.schemaPath,
-                directories = directories,
-                sourceSetFiles = sourceSetFiles,
-            )
+            val resolveSchema =
+                ConfigUtils.resolveSchema(
+                    project = project,
+                    schemaPath = service.schemaPath,
+                    directories = directories,
+                    sourceSetFiles = sourceSetFiles,
+                )
 
             log.info("Read querie(s)/fragment(s) files")
             val graphqlMatcher: PathMatcher = FileSystems.getDefault().getPathMatcher("glob:**.{graphql,gql,graphqls}")
             val graphqlFiles =
-                ConfigUtils.findFilesByMatcher(sourceSetFiles, graphqlMatcher)
+                ConfigUtils
+                    .findFilesByMatcher(sourceSetFiles, graphqlMatcher)
                     .takeIf { set -> set.isNotEmpty() }
                     ?: throw MojoExecutionException("No querie(s)/fragment(s) found")
 
-            val operationOutputGenerator = if (compilerParams.operationIdGeneratorClass.isEmpty()) {
-                OperationOutputGenerator.Default(OperationIdGenerator.Sha256)
-            } else {
-                val operationIdGenerator =
-                    Class.forName(compilerParams.operationIdGeneratorClass).newInstance() as OperationIdGenerator
-                OperationOutputGenerator.Default(operationIdGenerator)
-            }
+            val operationOutputGenerator =
+                if (compilerParams.operationIdGeneratorClass.isEmpty()) {
+                    OperationOutputGenerator.Default(OperationIdGenerator.Sha256)
+                } else {
+                    val operationIdGenerator =
+                        Class.forName(compilerParams.operationIdGeneratorClass).newInstance() as OperationIdGenerator
+                    OperationOutputGenerator.Default(operationIdGenerator)
+                }
 
             val metadata = compilerParams.metadataFiles.toList().map { it.toCodegenMetadata() }
 
-            val scalarMapping = compilerParams.scalarsMapping
-                .mapValues { scalarMapping ->
-                    when (val expression = scalarMapping.value.expression) {
-                        null -> ScalarInfo(scalarMapping.value.targetName)
-                        else -> ScalarInfo(scalarMapping.value.targetName, ExpressionAdapterInitializer(expression))
+            val scalarMapping =
+                compilerParams.scalarsMapping
+                    .mapValues { scalarMapping ->
+                        when (val expression = scalarMapping.value.expression) {
+                            null -> ScalarInfo(scalarMapping.value.targetName)
+                            else -> ScalarInfo(scalarMapping.value.targetName, ExpressionAdapterInitializer(expression))
+                        }
                     }
-                }
 
             val codegenOptions =
                 buildCodegenOptions(
