@@ -1,7 +1,7 @@
 package com.github.aoudiamoncef.apollo.plugin.config
 
-import com.apollographql.apollo3.annotations.ApolloExperimental
-import com.apollographql.apollo3.compiler.*
+import com.apollographql.apollo.annotations.ApolloExperimental
+import com.apollographql.apollo.compiler.*
 import java.io.File
 
 /**
@@ -264,7 +264,12 @@ class CompilerParams {
      */
     internal val flattenModels: Boolean = true
 
-    internal val logger: ApolloCompiler.Logger = ApolloCompiler.NoOpLogger
+    internal val logger: ApolloCompiler.Logger =
+        object : ApolloCompiler.Logger {
+            override fun warning(message: String) {
+                // No operation, ignore warnings
+            }
+        }
 
     /**
      * The file where to write the metadata

@@ -1,11 +1,16 @@
 package com.github.aoudiamoncef.apollo.plugin
 
-import com.apollographql.apollo3.compiler.*
-import com.apollographql.apollo3.compiler.introspection.toSchema
+import com.apollographql.apollo.ast.introspection.toGQLDocument
+import com.apollographql.apollo.ast.introspection.toIntrospectionSchema
+import com.apollographql.apollo.ast.toGQLDocument
+import com.apollographql.apollo.ast.toSchema
+import com.apollographql.apollo.compiler.*
+import com.apollographql.apollo.compiler.codegen.writeTo
 import com.github.aoudiamoncef.apollo.plugin.config.CompilationUnit
 import com.github.aoudiamoncef.apollo.plugin.config.Introspection
 import com.github.aoudiamoncef.apollo.plugin.config.Service
 import com.github.aoudiamoncef.apollo.plugin.util.ConfigUtils
+import com.github.aoudiamoncef.apollo.plugin.util.ConfigUtils.isIntrospection
 import com.github.aoudiamoncef.apollo.plugin.util.SchemaDownloader
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -138,7 +143,7 @@ class GraphQLClientMojo : AbstractMojo() {
                 OperationOutputGenerator.Default(operationIdGenerator)
             }
 
-            val metadata = compilerParams.metadataFiles.toList().map { ApolloMetadata.readFrom(it).compilerMetadata }
+            val metadata = compilerParams.metadataFiles.toList().map { it.toCodegenMetadata() }
 
             val scalarMapping = compilerParams.scalarsMapping
                 .mapValues { scalarMapping ->
@@ -148,42 +153,62 @@ class GraphQLClientMojo : AbstractMojo() {
                     }
                 }
 
-            ApolloCompiler.write(
-                Options(
-                    schema = resolveSchema!!.toSchema(),
-                    outputDir = compilationUnit.outputDirectory as File,
-                    testDir = compilationUnit.testDirectory as File,
-                    debugDir = compilationUnit.debugDirectory as File,
-                    executableFiles = graphqlFiles,
-                    schemaPackageName = compilerParams.schemaPackageName,
-                    packageNameGenerator = PackageNameGenerator.Flat(compilerParams.packageName as String),
-                    alwaysGenerateTypesMatching = compilerParams.alwaysGenerateTypesMatching,
-                    operationOutputGenerator = operationOutputGenerator,
-                    incomingCompilerMetadata = metadata,
-                    scalarMapping = scalarMapping,
-                    codegenModels = compilerParams.codegenModels.label,
-                    flattenModels = compilerParams.flattenModels,
+            val codegenOptions =
+                buildCodegenOptions(
+                    targetLanguage = compilerParams.targetLanguage,
                     useSemanticNaming = compilerParams.useSemanticNaming,
+                    operationManifestFormat = compilerParams.operationManifestFormat,
+                    generateSchema = compilerParams.generateSchema,
+                    // sealedClassesForEnumsMatching = compilerParams.sealedClassesForEnumsMatching,
+                    // generateAsInternal = compilerParams.generateAsInternal,
+                    // generateFilterNotNull = compilerParams.generateFilterNotNull,
+                    // generateModelBuilders = compilerParams.generateModelBuilders,
+                    // nullableFieldStyle = compilerParams.nullableFieldStyle,
+                    generateFragmentImplementations = compilerParams.generateFragmentImplementations,
+                    generateQueryDocument = compilerParams.generateQueryDocument,
+                    packageName = compilerParams.packageName,
+                )
+
+            val schema =
+                if (resolveSchema!!.isIntrospection()) {
+                    resolveSchema.toIntrospectionSchema().toGQLDocument().toSchema()
+                } else {
+                    resolveSchema.toGQLDocument().toSchema()
+                }
+
+            val codegenSchema =
+                CodegenSchema(
+                    schema = schema,
+                    normalizedPath = "",
+                    scalarMapping = scalarMapping,
+                    generateDataBuilders = compilerParams.generateDataBuilders,
+                )
+
+            val irOptions =
+                buildIrOptions(
+                    flattenModels = compilerParams.flattenModels,
                     warnOnDeprecatedUsages = compilerParams.warnOnDeprecatedUsages,
                     failOnWarnings = compilerParams.failOnWarnings,
-                    logger = compilerParams.logger,
-                    generateAsInternal = compilerParams.generateAsInternal,
-                    generateFilterNotNull = compilerParams.generateFilterNotNull,
-                    generateFragmentImplementations = compilerParams.generateFragmentImplementations,
-                    operationManifestFormat = compilerParams.operationManifestFormat,
-                    operationManifestFile = compilationUnit.operationOutputFile,
-                    generateResponseFields = compilerParams.generateResponseFields,
-                    generateQueryDocument = compilerParams.generateQueryDocument,
-                    generateSchema = compilerParams.generateSchema,
-                    targetLanguage = compilerParams.targetLanguage,
-                    generateTestBuilders = compilerParams.generateTestBuilders,
-                    generateModelBuilders = compilerParams.generateModelBuilders,
-                    generateDataBuilders = compilerParams.generateDataBuilders,
-                    nullableFieldStyle = compilerParams.nullableFieldStyle,
-                    sealedClassesForEnumsMatching = compilerParams.sealedClassesForEnumsMatching,
                     generateOptionalOperationVariables = compilerParams.generateOptionalOperationVariables,
-                ),
-            )
+                    alwaysGenerateTypesMatching = compilerParams.alwaysGenerateTypesMatching,
+                    codegenModels = compilerParams.codegenModels.label,
+                )
+
+            ApolloCompiler
+                .buildSchemaAndOperationsSources(
+                    codegenSchema = codegenSchema,
+                    executableFiles = graphqlFiles.toInputFiles(),
+                    irOptions = irOptions,
+                    codegenOptions = codegenOptions,
+                    layoutFactory = null,
+                    operationOutputGenerator = operationOutputGenerator,
+                    irOperationsTransform = null,
+                    javaOutputTransform = null,
+                    kotlinOutputTransform = null,
+                    documentTransform = null,
+                    logger = compilerParams.logger,
+                    operationManifestFile = compilationUnit.operationOutputFile,
+                ).writeTo(compilationUnit.outputDirectory as File, true, null)
 
             if (service.addSourceRoot) {
                 val generatedSourcePath = compilationUnit.outputDirectory?.canonicalPath

@@ -19,6 +19,10 @@ Maven plugin that calls the https://github.com/apollographql/apollo-kotlin[Apoll
 
 * A complete project with https://github.com/{project-owner}/spring-boot-apollo-graphql[Spring Boot].
 
+=== Apollo 3 support
+
+* ToDo
+
 === Apollo 2 support
 
 * Go to support https://github.com/aoudiamoncef/apollo-client-maven-plugin/tree/support/apollo-2[branch].
@@ -31,9 +35,9 @@ Maven plugin that calls the https://github.com/apollographql/apollo-kotlin[Apoll
 ----
 <dependencies>
    <dependency>
-       <groupId>com.apollographql.apollo3</groupId>
-       <artifactId>apollo-runtime</artifactId>
-       <version>3.8.2</version>
+      <groupId>com.apollographql.apollo</groupId>
+      <artifactId>apollo-runtime</artifactId>
+      <version>4.1.1</version>
    </dependency>
 </dependencies>
 ----
@@ -83,12 +87,12 @@ At build time, the plugin will query the server and install this file per the va
 [source,xml]
 ---
 <dependency>
-      <groupId>com.apollographql.apollo3</groupId>
+      <groupId>com.apollographql.apollo</groupId>
       <artifactId>apollo-api-jvm</artifactId>
       <version>3.8.2</version>
 </dependency>
  <dependency>
-    <groupId>com.apollographql.apollo3</groupId>
+    <groupId>com.apollographql.apollo</groupId>
     <artifactId>apollo-runtime-jvm</artifactId>
     <version>3.8.2</version>
 </dependency>
@@ -208,10 +212,10 @@ Implementation of a custom adapter for `java.time.LocalDate`:
 
 [source,java]
 ----
-import com.apollographql.apollo3.api.Adapter;
-import com.apollographql.apollo3.api.CustomScalarAdapters;
-import com.apollographql.apollo3.api.json.JsonReader;
-import com.apollographql.apollo3.api.json.JsonWriter;
+import com.apollographql.apollo.api.Adapter;
+import com.apollographql.apollo.api.CustomScalarAdapters;
+import com.apollographql.apollo.api.json.JsonReader;
+import com.apollographql.apollo.api.json.JsonWriter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
