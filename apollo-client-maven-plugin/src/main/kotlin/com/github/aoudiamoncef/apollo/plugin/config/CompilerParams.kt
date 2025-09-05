@@ -48,6 +48,36 @@ class CompilerParams {
     internal val operationIdGeneratorClass: String = ""
 
     /**
+     *
+     * Default value:
+     */
+    internal val layoutFactoryClass: String = ""
+
+    /**
+     *
+     * Default value:
+     */
+    internal val irOperationsTransformClass: String = ""
+
+    /**
+     *
+     * Default value:
+     */
+    internal val javaOutputTransformClass: String = ""
+
+    /**
+     *
+     * Default value:
+     */
+    internal val kotlinOutputTransformClass: String = ""
+
+    /**
+     *
+     * Default value:
+     */
+    internal val documentTransformClass: String = ""
+
+    /**
      * When true, the generated classes names will end with 'Query' or 'Mutation'.
      * If you write `query droid { ... }`, the generated class will be named 'DroidQuery'.
      *

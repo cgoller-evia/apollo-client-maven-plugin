@@ -6,7 +6,13 @@ import com.apollographql.apollo.ast.introspection.toIntrospectionSchema
 import com.apollographql.apollo.ast.toGQLDocument
 import com.apollographql.apollo.ast.toSchema
 import com.apollographql.apollo.compiler.*
+import com.apollographql.apollo.compiler.DocumentTransform
+import com.apollographql.apollo.compiler.LayoutFactory
+import com.apollographql.apollo.compiler.Transform
+import com.apollographql.apollo.compiler.codegen.java.JavaOutput
+import com.apollographql.apollo.compiler.codegen.kotlin.KotlinOutput
 import com.apollographql.apollo.compiler.codegen.writeTo
+import com.apollographql.apollo.compiler.ir.IrOperations
 import com.github.aoudiamoncef.apollo.plugin.config.CompilationUnit
 import com.github.aoudiamoncef.apollo.plugin.config.Introspection
 import com.github.aoudiamoncef.apollo.plugin.config.Service
@@ -78,7 +84,7 @@ class GraphQLClientMojo : AbstractMojo() {
             val service: Service = ConfigUtils.checkService(project, it.key, it.value)
             val compilationUnit: CompilationUnit =
                 ConfigUtils.checkCompilationUnit(project, it.key, service.compilationUnit)
-            val compilerParams = ConfigUtils.checkCompilerParams(project, service, compilationUnit.compilerParams)
+            val compilerParams = ConfigUtils.checkCompilerParams(project, service, compilationUnit.compilerParams, log)
             val introspection: Introspection = ConfigUtils.checkIntrospection(project, service)
 
             log.info("Generating service: ${it.key}")
@@ -149,6 +155,56 @@ class GraphQLClientMojo : AbstractMojo() {
                     OperationOutputGenerator.Default(operationIdGenerator)
                 }
 
+            val layoutFactory =
+                if (compilerParams.layoutFactoryClass.isEmpty()) {
+                    null
+                } else {
+                    Class
+                        .forName(compilerParams.layoutFactoryClass)
+                        .getDeclaredConstructor()
+                        .newInstance() as LayoutFactory
+                }
+
+            val irOperationsTransform =
+                if (compilerParams.irOperationsTransformClass.isEmpty()) {
+                    null
+                } else {
+                    Class
+                        .forName(compilerParams.irOperationsTransformClass)
+                        .getDeclaredConstructor()
+                        .newInstance() as Transform<IrOperations>
+                }
+
+            val javaOutputTransform =
+                if (compilerParams.javaOutputTransformClass.isEmpty()) {
+                    null
+                } else {
+                    Class
+                        .forName(compilerParams.javaOutputTransformClass)
+                        .getDeclaredConstructor()
+                        .newInstance() as Transform<JavaOutput>
+                }
+
+            val kotlinOutputTransform =
+                if (compilerParams.kotlinOutputTransformClass.isEmpty()) {
+                    null
+                } else {
+                    Class
+                        .forName(compilerParams.kotlinOutputTransformClass)
+                        .getDeclaredConstructor()
+                        .newInstance() as Transform<KotlinOutput>
+                }
+
+            val documentTransform =
+                if (compilerParams.documentTransformClass.isEmpty()) {
+                    null
+                } else {
+                    Class
+                        .forName(compilerParams.documentTransformClass)
+                        .getDeclaredConstructor()
+                        .newInstance() as DocumentTransform
+                }
+
             val scalarMapping =
                 compilerParams.scalarsMapping
                     .mapValues { scalarMapping ->
@@ -205,12 +261,12 @@ class GraphQLClientMojo : AbstractMojo() {
                     executableFiles = graphqlFiles.toInputFiles(),
                     irOptions = irOptions,
                     codegenOptions = codegenOptions,
-                    layoutFactory = null, // ToDo: plugin?.layout(codegenSchema)
+                    layoutFactory = layoutFactory,
                     operationOutputGenerator = operationOutputGenerator,
-                    irOperationsTransform = null, // ToDo: plugin?.irOperationsTransform(),
-                    javaOutputTransform = null, // ToDo: plugin?.javaOutputTransform(),
-                    kotlinOutputTransform = null, // ToDo: plugin?.kotlinOutputTransform(),
-                    documentTransform = null, // ToDo: plugin?.documentTransform(),
+                    irOperationsTransform = irOperationsTransform,
+                    javaOutputTransform = javaOutputTransform,
+                    kotlinOutputTransform = kotlinOutputTransform,
+                    documentTransform = documentTransform,
                     logger = compilerParams.logger,
                     operationManifestFile = compilationUnit.operationOutputFile,
                 ).writeTo(compilationUnit.outputDirectory as File, true, null)

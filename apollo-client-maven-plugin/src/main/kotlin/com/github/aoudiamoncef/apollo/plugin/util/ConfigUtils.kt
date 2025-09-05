@@ -101,6 +101,7 @@ object ConfigUtils {
         project: MavenProject,
         service: Service,
         compilerParams: CompilerParams,
+        log: org.apache.maven.plugin.logging.Log,
     ): CompilerParams {
         compilerParams.rootFolders =
             if (compilerParams.rootFolders.isNotEmpty()) compilerParams.rootFolders else listOf(service.sourceFolder as File)
@@ -127,20 +128,20 @@ object ConfigUtils {
 
         if (compilerParams.targetLanguage == TargetLanguage.JAVA) {
             if (compilerParams.generateAsInternal != null) {
-                throw MojoExecutionException("generateAsInternal is not used in Java")
+                log.warn("generateAsInternal is not used in Java")
             }
             if (compilerParams.generateFilterNotNull != null) {
-                throw MojoExecutionException("generateFilterNotNull is not used in Java")
+                log.warn("generateFilterNotNull is not used in Java")
             }
             if (compilerParams.sealedClassesForEnumsMatching != null) {
-                throw MojoExecutionException("sealedClassesForEnumsMatching is not used in Java")
+                log.warn("sealedClassesForEnumsMatching is not used in Java")
             }
         } else {
             if (compilerParams.nullableFieldStyle != null) {
-                throw MojoExecutionException("nullableFieldStyle is not used in Kotlin")
+                log.warn("nullableFieldStyle is not used in Kotlin")
             }
             if (compilerParams.generateModelBuilders != null) {
-                throw MojoExecutionException("generateModelBuilders is not used in Kotlin")
+                log.warn("generateModelBuilders is not used in Kotlin")
             }
         }
 
