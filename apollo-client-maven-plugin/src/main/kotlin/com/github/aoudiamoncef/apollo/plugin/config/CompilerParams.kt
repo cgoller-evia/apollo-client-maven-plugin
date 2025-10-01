@@ -86,15 +86,6 @@ class CompilerParams {
     internal val useSemanticNaming: Boolean = true
 
     /**
-     * The package name of the models is computed from their folder hierarchy like for java sources.
-     *
-     * If you want, you can prepend a custom package name here to namespace your models.
-     *
-     * Default value: the empty string
-     */
-    internal var schemaPackageName: String = ""
-
-    /**
      * Whether to generate Kotlin models with `internal` visibility modifier.
      *
      * Default value: false

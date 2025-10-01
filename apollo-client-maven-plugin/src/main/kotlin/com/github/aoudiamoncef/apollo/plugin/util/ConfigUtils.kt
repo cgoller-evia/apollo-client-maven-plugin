@@ -115,15 +115,7 @@ object ConfigUtils {
         }
 
         if (compilerParams.packageName.isNullOrBlank()) {
-            if (compilerParams.schemaPackageName.isNotBlank()) {
-                compilerParams.packageName = compilerParams.schemaPackageName.removeSuffix("schema").plus("operation")
-            } else {
-                compilerParams.packageName = "${project.groupId}.apollo.client.${service.compilationUnit.name}.operation"
-            }
-        }
-
-        if (compilerParams.schemaPackageName.isBlank()) {
-            compilerParams.schemaPackageName = "${project.groupId}.apollo.client.${service.compilationUnit.name}.schema"
+            compilerParams.packageName = "${project.groupId}.apollo.client.${service.compilationUnit.name}.operation"
         }
 
         if (compilerParams.targetLanguage == TargetLanguage.JAVA) {

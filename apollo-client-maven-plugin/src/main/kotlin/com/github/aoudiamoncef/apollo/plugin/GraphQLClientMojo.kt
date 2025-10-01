@@ -1,14 +1,7 @@
 package com.github.aoudiamoncef.apollo.plugin
 
 import com.apollographql.apollo.annotations.ApolloExperimental
-import com.apollographql.apollo.ast.introspection.toGQLDocument
-import com.apollographql.apollo.ast.introspection.toIntrospectionSchema
-import com.apollographql.apollo.ast.toGQLDocument
-import com.apollographql.apollo.ast.toSchema
 import com.apollographql.apollo.compiler.*
-import com.apollographql.apollo.compiler.DocumentTransform
-import com.apollographql.apollo.compiler.LayoutFactory
-import com.apollographql.apollo.compiler.Transform
 import com.apollographql.apollo.compiler.codegen.java.JavaOutput
 import com.apollographql.apollo.compiler.codegen.kotlin.KotlinOutput
 import com.apollographql.apollo.compiler.codegen.writeTo
@@ -17,7 +10,6 @@ import com.github.aoudiamoncef.apollo.plugin.config.CompilationUnit
 import com.github.aoudiamoncef.apollo.plugin.config.Introspection
 import com.github.aoudiamoncef.apollo.plugin.config.Service
 import com.github.aoudiamoncef.apollo.plugin.util.ConfigUtils
-import com.github.aoudiamoncef.apollo.plugin.util.ConfigUtils.isIntrospection
 import com.github.aoudiamoncef.apollo.plugin.util.SchemaDownloader
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -202,17 +194,8 @@ class GraphQLClientMojo : AbstractMojo() {
                     Class
                         .forName(compilerParams.documentTransformClass)
                         .getDeclaredConstructor()
-                        .newInstance() as DocumentTransform
+                        .newInstance() as ExecutableDocumentTransform
                 }
-
-            val scalarMapping =
-                compilerParams.scalarsMapping
-                    .mapValues { scalarMapping ->
-                        when (val expression = scalarMapping.value.expression) {
-                            null -> ScalarInfo(scalarMapping.value.targetName)
-                            else -> ScalarInfo(scalarMapping.value.targetName, ExpressionAdapterInitializer(expression))
-                        }
-                    }
 
             val codegenOptions =
                 buildCodegenOptions(
@@ -230,19 +213,24 @@ class GraphQLClientMojo : AbstractMojo() {
                     packageName = compilerParams.packageName,
                 )
 
-            val schema =
-                if (resolveSchema!!.isIntrospection()) {
-                    resolveSchema.toIntrospectionSchema().toGQLDocument().toSchema()
-                } else {
-                    resolveSchema.toGQLDocument().toSchema()
-                }
+            val scalarTypeMapping = HashMap<String, String>()
+            val scalarAdapterMapping = HashMap<String, String>()
 
+            compilerParams.scalarsMapping.entries.forEach { (key, value) ->
+                scalarTypeMapping[key] = value.targetName
+                if (value.expression != null) {
+                    scalarAdapterMapping[key] = value.expression
+                }
+            }
+
+            val codegenSchemaOptions = CodegenSchemaOptions(scalarTypeMapping, scalarAdapterMapping, compilerParams.generateDataBuilders)
+            val schemaInput = InputFile(resolveSchema!!, resolveSchema.normalize().path)
             val codegenSchema =
-                CodegenSchema(
-                    schema = schema,
-                    normalizedPath = service.schemaPath,
-                    scalarMapping = scalarMapping,
-                    generateDataBuilders = compilerParams.generateDataBuilders,
+                ApolloCompiler.buildCodegenSchema(
+                    listOf(schemaInput),
+                    compilerParams.logger,
+                    codegenSchemaOptions,
+                    emptyList(),
                 )
 
             val irOptions =
